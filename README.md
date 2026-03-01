@@ -32,6 +32,49 @@ Take it for a spin on Ubuntu 20.04 with a one liner - <br />`curl -L -s https://
 - MongoDB 5.0+
 - Elasticsearch 8 (optional to enable search)
 
+### Local Development
+
+#### Prerequisites
+- [Node.js](https://nodejs.org) 16+ (v22 supported)
+- [Yarn](https://yarnpkg.com) 3.2.1 (`corepack enable && corepack prepare yarn@3.2.1 --activate`)
+- [Docker](https://www.docker.com) (for MongoDB and Elasticsearch)
+
+#### First-time setup
+
+1. Install dependencies:
+   ```bash
+   yarn install
+   ```
+
+2. Run the full setup (resets Docker volumes, starts services, launches the install wizard, then starts the app):
+   ```bash
+   yarn fresh-setup
+   ```
+
+3. Open [http://localhost:8118](http://localhost:8118) in your browser and complete the install wizard:
+   - Leave the MongoDB **Username** and **Password** fields blank (no auth in the local Docker setup)
+   - Follow the remaining prompts to create your admin account
+
+4. After the wizard finishes, the app restarts automatically. Log in at [http://localhost:8118](http://localhost:8118).
+
+#### Subsequent runs
+
+```bash
+yarn start
+```
+
+The app is available at [http://localhost:8118](http://localhost:8118).
+
+#### Available scripts
+
+| Script | Description |
+|---|---|
+| `yarn start` | Start Docker services and the app |
+| `yarn fresh-setup` | Reset Docker volumes, start services, run install wizard, then start app |
+| `yarn setup` | Run install wizard then start app (Docker services must already be running) |
+| `yarn webpackdev` | One-off webpack build (development mode) |
+| `yarn webpackwatch` | Continuous webpack build (watches for changes) |
+
 ### Documentation
 Online documentation: [https://docs.trudesk.io/v1.2](https://docs.trudesk.io/v1.2)
 

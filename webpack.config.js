@@ -124,7 +124,12 @@ module.exports = {
             options: { minimize: true }
           },
           'postcss-loader',
-          'sass-loader'
+          {
+            loader: 'sass-loader',
+            options: {
+              implementation: require('sass')
+            }
+          }
         ]
       },
       {
