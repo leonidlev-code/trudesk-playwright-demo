@@ -67,6 +67,8 @@ restores/
 
 public/uploads/assets/upload/
 
+public/js/
+
 stats\.json
 dist/
 *.heapsnapshot
