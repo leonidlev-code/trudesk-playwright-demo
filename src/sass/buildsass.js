@@ -14,15 +14,15 @@
 
 var _ = require('lodash')
 var path = require('path')
-var sass = require('node-sass')
+var sass = require('sass')
 var settingUtil = require('../settings/settingsUtil')
 
 var buildsass = {}
 
 var sassOptionsDefaults = {
-  indentedSyntax: true,
-  includePaths: [path.join(__dirname, '../../src/sass')],
-  outputStyle: 'compressed'
+  syntax: 'indented',
+  loadPaths: [path.join(__dirname, '../../src/sass')],
+  style: 'compressed'
 }
 
 function sassVariable (name, value) {
@@ -43,12 +43,12 @@ function sassImport (path) {
 
 function dynamicSass (entry, vars, success, error) {
   var dataString = sassVariables(vars) + sassImport(entry)
-  var sassOptions = _.assign({}, sassOptionsDefaults, {
-    data: dataString
-  })
+  var sassOptions = _.assign({}, sassOptionsDefaults)
 
-  sass.render(sassOptions, function (err, result) {
-    return err ? error(err) : success(result.css.toString())
+  sass.compileStringAsync(dataString, sassOptions).then(function (result) {
+    return success(result.css)
+  }).catch(function (err) {
+    return error(err)
   })
 }
 

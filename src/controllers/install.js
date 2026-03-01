@@ -57,11 +57,17 @@ installController.elastictest = function (req, res) {
 installController.mongotest = function (req, res) {
   const data = req.body
   const dbPassword = encodeURIComponent(data.password)
-  let CONNECTION_URI =
-    'mongodb://' + data.username + ':' + dbPassword + '@' + data.host + ':' + data.port + '/' + data.database
+  let CONNECTION_URI
 
-  if (data.port === '---')
-    CONNECTION_URI = 'mongodb+srv://' + data.username + ':' + dbPassword + '@' + data.host + '/' + data.database
+  if (data.username) {
+    CONNECTION_URI =
+      'mongodb://' + data.username + ':' + dbPassword + '@' + data.host + ':' + data.port + '/' + data.database
+    if (data.port === '---')
+      CONNECTION_URI = 'mongodb+srv://' + data.username + ':' + dbPassword + '@' + data.host + '/' + data.database
+  } else {
+    CONNECTION_URI = 'mongodb://' + data.host + ':' + data.port + '/' + data.database
+    if (data.port === '---') CONNECTION_URI = 'mongodb+srv://' + data.host + '/' + data.database
+  }
 
   const child = require('child_process').fork(path.join(__dirname, '../../src/install/mongotest'), {
     env: { FORK: 1, NODE_ENV: global.env, MONGOTESTURI: CONNECTION_URI }
@@ -99,8 +105,7 @@ installController.existingdb = function (req, res) {
     mongo: {
       host: host,
       port: port,
-      username: username,
-      password: password,
+      ...(username && { username, password }),
       database: database
     },
     tokens: {
@@ -156,8 +161,14 @@ installController.install = function (req, res) {
   }
 
   const dbPassword = encodeURIComponent(password)
-  let conuri = 'mongodb://' + username + ':' + dbPassword + '@' + host + ':' + port + '/' + database
-  if (port === '---') conuri = 'mongodb+srv://' + username + ':' + dbPassword + '@' + host + '/' + database
+  let conuri
+  if (username) {
+    conuri = 'mongodb://' + username + ':' + dbPassword + '@' + host + ':' + port + '/' + database
+    if (port === '---') conuri = 'mongodb+srv://' + username + ':' + dbPassword + '@' + host + '/' + database
+  } else {
+    conuri = 'mongodb://' + host + ':' + port + '/' + database
+    if (port === '---') conuri = 'mongodb+srv://' + host + '/' + database
+  }
 
   async.waterfall(
     [
@@ -510,14 +521,16 @@ installController.restart = function (req, res) {
   const pm2 = require('pm2')
   pm2.connect(function (err) {
     if (err) {
-      winston.error(err)
-      res.status(400).send(err)
-      return
+      winston.warn('pm2 not available, restarting via process exit')
+      res.send()
+      return setTimeout(function () { process.exit(0) }, 500)
     }
     pm2.restart('trudesk', function (err) {
       if (err) {
-        res.status(400).send(err)
-        return winston.error(err)
+        winston.warn('pm2 restart failed, restarting via process exit')
+        pm2.disconnect()
+        res.send()
+        return setTimeout(function () { process.exit(0) }, 500)
       }
 
       pm2.disconnect()
